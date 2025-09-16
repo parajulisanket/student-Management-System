@@ -1,0 +1,105 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SMS</title>
+    <link rel="icon" href="{% static 'favico.png' %}" type="image/x-icon" />
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <style>
+      .navbar {
+        min-height: 70px;
+        font-size: 1.1rem;
+        letter-spacing: 0.5px;
+      }
+      .navbar-brand {
+        font-weight: 600;
+        font-size: 1.5rem;
+        letter-spacing: 1px;
+      }
+      .nav-link {
+        padding-top: 0.7rem !important;
+        padding-bottom: 0.7rem !important;
+        transition: color 0.2s;
+      }
+      .nav-link:hover {
+        color: #ffc107 !important;
+      }
+    </style>
+  </head>
+  <body class="d-flex flex-column min-vh-100">
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark shadow-sm">
+      <div class="container-fluid px-5">
+        <a class="navbar-brand" href="/">SMS</a>
+        <div class="collapse navbar-collapse">
+          <ul class="navbar-nav mx-auto gap-5">
+            <li class="nav-item">
+              <a class="nav-link" href="/school/students/">Students</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="/school/courses/">Courses</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="/school/grades/">Grades</a>
+            </li>
+          </ul>
+          <ul class="navbar-nav ms-auto">
+            {% if user.is_authenticated %}
+            <li class="nav-item">
+              <span class="navbar-text me-3"
+                >{{ user.username }} ({{ user.role }})</span
+              >
+            </li>
+            <li class="nav-item">
+              <a class="btn btn-outline-light" href="/logout/">Logout</a>
+            </li>
+            {% endif %}
+          </ul>
+        </div>
+      </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="container py-4 flex-grow-1">
+      {% for message in messages %}
+      <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+      {% endfor %} {% block content %}{% endblock %}
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-secondary text-white mt-auto py-4">
+      <div class="container text-center">
+        <!-- Logo -->
+        <img
+          src="{% static 'favico.png' %}"
+          alt="Logo"
+          width="80"
+          height="50"
+          class="mb-2"
+        />
+
+        <h5 class="mb-3">Student Management System</h5>
+
+        <hr class="border-dark" />
+
+        <div class="d-flex justify-content-between">
+          <p class="mb-0 text-dark">
+            &copy; {{ now|date:"Y" }} Student Management System. All rights
+            reserved.
+          </p>
+          <p class="mb-0 text-dark">
+            Developed by <strong class="text-white">Sanket Parajuli</strong>
+          </p>
+        </div>
+      </div>
+    </footer>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  </body>
+</html>

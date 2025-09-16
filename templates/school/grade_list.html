@@ -1,0 +1,24 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center">
+  <h3>Grades</h3>
+  <a class="btn btn-primary" href="/school/grades/create/">+ Add Grade</a>
+</div>
+<table class="table table-striped mt-3">
+  <thead><tr><th>Student</th><th>Course</th><th>Score</th><th>Date</th><th>Actions</th></tr></thead>
+  <tbody>
+  {% for g in grades %}
+    <tr>
+      <td>{{ g.enrollment.student.username }}</td>
+      <td>{{ g.enrollment.course.code }}</td>
+      <td>{{ g.score }}</td>
+      <td>{{ g.date }}</td>
+      <td>
+        <a class="btn btn-sm btn-info" href="/school/grades/{{ g.id }}/update/">Edit</a>
+        <a class="btn btn-sm btn-danger" href="/school/grades/{{ g.id }}/delete/">Delete</a>
+      </td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>
+{% endblock %}

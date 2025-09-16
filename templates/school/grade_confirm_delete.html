@@ -1,0 +1,8 @@
+{% extends 'base.html' %}
+{% block content %}
+<h3>Delete grade {{ grade.id }}?</h3>
+<form method="post">{% csrf_token %}
+  <button class="btn btn-danger" type="submit">Yes, delete</button>
+  <a class="btn btn-secondary" href="/school/grades/">Cancel</a>
+</form>
+{% endblock %}

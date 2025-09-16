@@ -1,0 +1,6 @@
+{% extends 'base.html' %}
+{% block content %}
+<h2>Student Dashboard</h2>
+<p>View your profile & grades.</p>
+<a class="btn btn-primary" href="/school/students/{{ user.id }}/">My Profile & Grades</a>
+{% endblock %}

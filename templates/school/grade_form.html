@@ -1,0 +1,9 @@
+{% extends 'base.html' %}
+{% block content %}
+<h3>{{ create|yesno:"Add Grade,Update Grade" }}</h3>
+<form method="post">{% csrf_token %}
+  {{ form.as_p }}
+  <button class="btn btn-primary" type="submit">Save</button>
+  <a class="btn btn-secondary" href="/school/grades/">Cancel</a>
+</form>
+{% endblock %}

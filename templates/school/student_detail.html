@@ -1,0 +1,37 @@
+{% extends 'base.html' %}
+{% block content %}
+<h3>Student: {{ student.username }}</h3>
+<p><strong>Name:</strong> {{ student.first_name }} {{ student.last_name }}<br/>
+<strong>Email:</strong> {{ student.email }}<br/>
+<strong>DOB:</strong> {{ student.student_profile.date_of_birth|default:'-' }}<br/>
+<strong>Address:</strong> {{ student.student_profile.address|default:'-' }}</p>
+
+<div class="mb-3">
+  <a class="btn btn-warning" href="/predictor/predict/{{ student.id }}/">Predict At-Risk</a>
+</div>
+
+<h5>Enrollments</h5>
+<ul>
+  {% for e in enrollments %}
+    <li>{{ e.course.code }} — {{ e.course.title }}</li>
+  {% empty %}
+    <li>No enrollments yet.</li>
+  {% endfor %}
+</ul>
+
+<h5>Grades</h5>
+<table class="table table-bordered">
+  <thead><tr><th>Course</th><th>Score</th><th>Date</th></tr></thead>
+  <tbody>
+  {% for g in grades %}
+    <tr>
+      <td>{{ g.enrollment.course.code }}</td>
+      <td>{{ g.score }}</td>
+      <td>{{ g.date }}</td>
+    </tr>
+  {% empty %}
+    <tr><td colspan="3">No grades yet.</td></tr>
+  {% endfor %}
+  </tbody>
+</table>
+{% endblock %}
