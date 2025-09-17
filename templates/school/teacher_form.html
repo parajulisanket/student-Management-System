@@ -1,0 +1,51 @@
+{% extends 'base.html' %} {% block content %}
+<h3>{{ create|yesno:"Create Teacher,Update Teacher" }}</h3>
+<form method="post">
+  {% csrf_token %} {% if create %}
+  <div class="row">
+    <div class="col-md-6 mb-3">
+      <label>Username</label>
+      <input class="form-control" name="username" required />
+    </div>
+    <div class="col-md-6 mb-3">
+      <label>Password</label>
+      <input class="form-control" name="password" type="password" required />
+    </div>
+  </div>
+  {% else %}
+  <div class="mb-3">
+    <label>New Password (leave blank to keep current)</label>
+    <input class="form-control" name="password" type="password" />
+  </div>
+  {% endif %}
+  <div class="row">
+    <div class="col-md-4 mb-3">
+      <label>First name</label>
+      <input
+        class="form-control"
+        name="first_name"
+        value="{{ teacher.first_name|default:'' }}"
+      />
+    </div>
+    <div class="col-md-4 mb-3">
+      <label>Last name</label>
+      <input
+        class="form-control"
+        name="last_name"
+        value="{{ teacher.last_name|default:'' }}"
+      />
+    </div>
+    <div class="col-md-4 mb-3">
+      <label>Email</label>
+      <input
+        class="form-control"
+        name="email"
+        type="email"
+        value="{{ teacher.email|default:'' }}"
+      />
+    </div>
+  </div>
+  <button class="btn btn-primary" type="submit">Save</button>
+  <a class="btn btn-secondary" href="/school/teachers/">Cancel</a>
+</form>
+{% endblock %}

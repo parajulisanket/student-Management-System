@@ -1,9 +1,74 @@
 {% extends 'base.html' %} {% block content %}
-<h2>Admin Dashboard</h2>
-<p>Manage students, courses, enrollments, and run ML.</p>
-<a class="btn btn-success me-2" href="/school/students/">Manage Students</a>
-<a class="btn btn-success me-2" href="/school/courses/">Manage Courses</a>
-<a class="btn btn-success me-2" href="/school/grades/">Manage Grades</a>
-<a class="btn btn-primary me-2" href="/school/enroll/">Enroll Student</a>
-<a class="btn btn-warning" href="/predictor/train/">Train Demo ML Model</a>
+
+<h2 class="mb-4 text-center">Admin Dashboard</h2>
+<p class="text-muted text-center">
+  Manage students, teachers, courses, enrollments, and run ML.
+</p>
+
+<div
+  class="d-flex flex-wrap gap-3 mt-5 justify-content-center align-item-center"
+>
+  <a class="btn dashboard-btn btn-students" href="/school/students/">
+    Manage Students
+  </a>
+  <a class="btn dashboard-btn btn-teachers" href="/school/teachers/">
+    Manage Teachers
+  </a>
+  <a class="btn dashboard-btn btn-courses" href="/school/courses/">
+    Manage Courses
+  </a>
+  <a class="btn dashboard-btn btn-grades" href="/school/grades/">
+    Manage Grades
+  </a>
+  <a class="btn dashboard-btn btn-enroll" href="/school/enroll/">
+    Enroll Student
+  </a>
+  <a class="btn dashboard-btn btn-ml" href="/predictor/train/">
+    Train Demo ML Model
+  </a>
+</div>
+
+<style>
+  .dashboard-btn {
+    min-width: 180px;
+    min-height: 120px;
+    font-size: 1.05rem;
+    font-weight: 500;
+    text-align: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 0.75rem;
+    color: #fff !important;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
+    transition: all 0.25s ease-in-out;
+  }
+
+  .dashboard-btn:hover {
+    transform: translateY(-3px);
+    filter: brightness(1.25);
+    color: black !important;
+    box-shadow: 0 6px 14px rgba(0, 0, 0, 0.18);
+  }
+
+  .btn-students {
+    background-color: #003f9e;
+  }
+  .btn-teachers {
+    background-color: #134aab;
+  }
+  .btn-courses {
+    background-color: #144bac;
+  }
+  .btn-grades {
+    background-color: #5270d8;
+  }
+  .btn-enroll {
+    background-color: #6882ec;
+  }
+  .btn-ml {
+    background-color: #3c5fd0;
+  }
+</style>
+
 {% endblock %}

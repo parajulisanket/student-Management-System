@@ -2,12 +2,15 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.contrib.auth import get_user_model
+from django.contrib.auth.hashers import make_password
+
 from users.models import CustomUser
 from .models import StudentProfile, Course, Grade, Enrollment
 from .forms import StudentForm, CourseForm, GradeForm, EnrollmentForm
 
 User = get_user_model()
 
+# Students (Admin only)
 @login_required
 def student_list(request):
     if request.user.role != CustomUser.Role.ADMIN:
@@ -21,14 +24,22 @@ def student_create(request):
     if request.user.role != CustomUser.Role.ADMIN:
         messages.error(request, 'Admins only.')
         return redirect('dashboard')
+
     if request.method == 'POST':
         username = request.POST.get('username')
         password = request.POST.get('password')
         first_name = request.POST.get('first_name')
         last_name = request.POST.get('last_name')
         email = request.POST.get('email')
-        user = User.objects.create_user(username=username, password=password, role=CustomUser.Role.STUDENT,
-                                        first_name=first_name or '', last_name=last_name or '', email=email or '')
+
+        user = User.objects.create_user(
+            username=username,
+            password=password,
+            role=CustomUser.Role.STUDENT,
+            first_name=first_name or '',
+            last_name=last_name or '',
+            email=email or ''
+        )
         form = StudentForm(request.POST, user_instance=user)
         if form.is_valid():
             profile = form.save(commit=False)
@@ -41,6 +52,7 @@ def student_create(request):
             messages.error(request, 'Fix errors in profile form.')
     else:
         form = StudentForm()
+
     return render(request, 'school/student_form.html', {'form': form, 'create': True})
 
 @login_required
@@ -48,11 +60,14 @@ def student_detail(request, user_id):
     if request.user.role not in [CustomUser.Role.ADMIN, CustomUser.Role.TEACHER] and request.user.id != user_id:
         messages.error(request, 'Permission denied.')
         return redirect('dashboard')
+
     student = get_object_or_404(User, pk=user_id, role=CustomUser.Role.STUDENT)
     enrollments = Enrollment.objects.filter(student=student).select_related('course')
     grades = Grade.objects.filter(enrollment__student=student).select_related('enrollment__course')
     return render(request, 'school/student_detail.html', {
-        'student': student, 'enrollments': enrollments, 'grades': grades,
+        'student': student,
+        'enrollments': enrollments,
+        'grades': grades,
     })
 
 @login_required
@@ -60,13 +75,16 @@ def student_update(request, user_id):
     if request.user.role != CustomUser.Role.ADMIN:
         messages.error(request, 'Admins only.')
         return redirect('dashboard')
+
     student = get_object_or_404(User, pk=user_id, role=CustomUser.Role.STUDENT)
     profile = getattr(student, 'student_profile', None) or StudentProfile(user=student)
+
     if request.method == 'POST':
         student.first_name = request.POST.get('first_name', student.first_name)
         student.last_name = request.POST.get('last_name', student.last_name)
         student.email = request.POST.get('email', student.email)
         student.save()
+
         form = StudentForm(request.POST, instance=profile, user_instance=student)
         if form.is_valid():
             form.save()
@@ -74,6 +92,7 @@ def student_update(request, user_id):
             return redirect('student_list')
     else:
         form = StudentForm(instance=profile, user_instance=student)
+
     return render(request, 'school/student_form.html', {'form': form, 'student': student, 'create': False})
 
 @login_required
@@ -81,12 +100,95 @@ def student_delete(request, user_id):
     if request.user.role != CustomUser.Role.ADMIN:
         messages.error(request, 'Admins only.')
         return redirect('dashboard')
+
     student = get_object_or_404(User, pk=user_id, role=CustomUser.Role.STUDENT)
     if request.method == 'POST':
         student.delete()
         messages.success(request, 'Student deleted.')
         return redirect('student_list')
+
     return render(request, 'school/student_confirm_delete.html', {'student': student})
+
+
+
+# Teachers (Admin only)
+
+@login_required
+def teacher_list(request):
+    if request.user.role != CustomUser.Role.ADMIN:
+        messages.error(request, 'Admins only.')
+        return redirect('dashboard')
+    teachers = User.objects.filter(role=CustomUser.Role.TEACHER)
+    return render(request, 'school/teacher_list.html', {'teachers': teachers})
+
+@login_required
+def teacher_create(request):
+    if request.user.role != CustomUser.Role.ADMIN:
+        messages.error(request, 'Admins only.')
+        return redirect('dashboard')
+
+    if request.method == 'POST':
+        username   = request.POST.get('username')
+        password   = request.POST.get('password')
+        first_name = request.POST.get('first_name')
+        last_name  = request.POST.get('last_name')
+        email      = request.POST.get('email')
+
+        if not username or not password:
+            messages.error(request, 'Username and password are required.')
+        else:
+            user = User.objects.create(
+                username=username,
+                password=make_password(password),
+                role=CustomUser.Role.TEACHER,
+                first_name=first_name or '',
+                last_name=last_name or '',
+                email=email or '',
+            )
+            messages.success(request, 'Teacher created.')
+            return redirect('teacher_list')
+
+    return render(request, 'school/teacher_form.html', {'create': True})
+
+@login_required
+def teacher_update(request, user_id):
+    if request.user.role != CustomUser.Role.ADMIN:
+        messages.error(request, 'Admins only.')
+        return redirect('dashboard')
+
+    teacher = get_object_or_404(User, pk=user_id, role=CustomUser.Role.TEACHER)
+    if request.method == 'POST':
+        teacher.first_name = request.POST.get('first_name', teacher.first_name)
+        teacher.last_name  = request.POST.get('last_name', teacher.last_name)
+        teacher.email      = request.POST.get('email', teacher.email)
+
+        new_password = (request.POST.get('password') or '').strip()
+        if new_password:
+            teacher.password = make_password(new_password)
+
+        teacher.save()
+        messages.success(request, 'Teacher updated.')
+        return redirect('teacher_list')
+
+    return render(request, 'school/teacher_form.html', {'create': False, 'teacher': teacher})
+
+@login_required
+def teacher_delete(request, user_id):
+    if request.user.role != CustomUser.Role.ADMIN:
+        messages.error(request, 'Admins only.')
+        return redirect('dashboard')
+
+    teacher = get_object_or_404(User, pk=user_id, role=CustomUser.Role.TEACHER)
+    if request.method == 'POST':
+        teacher.delete()
+        messages.success(request, 'Teacher deleted.')
+        return redirect('teacher_list')
+
+    return render(request, 'school/teacher_confirm_delete.html', {'teacher': teacher})
+
+
+
+# Courses (Admin only)
 
 @login_required
 def course_list(request):
@@ -101,6 +203,7 @@ def course_create(request):
     if request.user.role != CustomUser.Role.ADMIN:
         messages.error(request, 'Admins only.')
         return redirect('dashboard')
+
     if request.method == 'POST':
         form = CourseForm(request.POST)
         if form.is_valid():
@@ -109,6 +212,7 @@ def course_create(request):
             return redirect('course_list')
     else:
         form = CourseForm()
+
     return render(request, 'school/course_form.html', {'form': form, 'create': True})
 
 @login_required
@@ -116,6 +220,7 @@ def course_update(request, pk):
     if request.user.role != CustomUser.Role.ADMIN:
         messages.error(request, 'Admins only.')
         return redirect('dashboard')
+
     course = get_object_or_404(Course, pk=pk)
     if request.method == 'POST':
         form = CourseForm(request.POST, instance=course)
@@ -125,6 +230,7 @@ def course_update(request, pk):
             return redirect('course_list')
     else:
         form = CourseForm(instance=course)
+
     return render(request, 'school/course_form.html', {'form': form, 'create': False})
 
 @login_required
@@ -132,12 +238,18 @@ def course_delete(request, pk):
     if request.user.role != CustomUser.Role.ADMIN:
         messages.error(request, 'Admins only.')
         return redirect('dashboard')
+
     course = get_object_or_404(Course, pk=pk)
     if request.method == 'POST':
         course.delete()
         messages.success(request, 'Course deleted.')
         return redirect('course_list')
+
     return render(request, 'school/course_confirm_delete.html', {'course': course})
+
+
+
+# Grades (Teacher/Admin)
 
 @login_required
 def grade_list(request):
@@ -152,6 +264,7 @@ def grade_create(request):
     if request.user.role not in [CustomUser.Role.TEACHER, CustomUser.Role.ADMIN]:
         messages.error(request, 'Teachers or Admin only.')
         return redirect('dashboard')
+
     if request.method == 'POST':
         form = GradeForm(request.POST)
         if form.is_valid():
@@ -160,6 +273,7 @@ def grade_create(request):
             return redirect('grade_list')
     else:
         form = GradeForm()
+
     return render(request, 'school/grade_form.html', {'form': form, 'create': True})
 
 @login_required
@@ -167,6 +281,7 @@ def grade_update(request, pk):
     if request.user.role not in [CustomUser.Role.TEACHER, CustomUser.Role.ADMIN]:
         messages.error(request, 'Teachers or Admin only.')
         return redirect('dashboard')
+
     grade = get_object_or_404(Grade, pk=pk)
     if request.method == 'POST':
         form = GradeForm(request.POST, instance=grade)
@@ -176,6 +291,7 @@ def grade_update(request, pk):
             return redirect('grade_list')
     else:
         form = GradeForm(instance=grade)
+
     return render(request, 'school/grade_form.html', {'form': form, 'create': False})
 
 @login_required
@@ -183,24 +299,33 @@ def grade_delete(request, pk):
     if request.user.role not in [CustomUser.Role.TEACHER, CustomUser.Role.ADMIN]:
         messages.error(request, 'Teachers or Admin only.')
         return redirect('dashboard')
+
     grade = get_object_or_404(Grade, pk=pk)
     if request.method == 'POST':
         grade.delete()
         messages.success(request, 'Grade deleted.')
         return redirect('grade_list')
+
     return render(request, 'school/grade_confirm_delete.html', {'grade': grade})
 
+# Enrollment (Admin only)
 @login_required
 def enroll_student(request):
     if request.user.role != CustomUser.Role.ADMIN:
         messages.error(request, 'Admins only.')
         return redirect('dashboard')
+
     if request.method == 'POST':
         form = EnrollmentForm(request.POST)
         if form.is_valid():
-            form.save()
-            messages.success(request, 'Student enrolled in course.')
-            return redirect('student_list')
+            try:
+                form.save()
+                messages.success(request, 'Student enrolled in course.')
+                return redirect('student_list')
+            except Exception as e:
+                messages.error(request, f'Could not enroll: {e}')
     else:
         form = EnrollmentForm()
+
+    # Reuses the simple form scaffold; you can make a dedicated enroll_form.html if you want.
     return render(request, 'school/grade_form.html', {'form': form, 'create': True})
